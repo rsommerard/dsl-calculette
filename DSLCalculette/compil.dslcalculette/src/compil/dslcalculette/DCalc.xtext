@@ -1,0 +1,25 @@
+grammar compil.dslcalculette.DCalc with org.eclipse.xtext.common.Terminals
+
+generate dCalc "http://www.dslcalculette.compil/DCalc"
+
+Model:
+	(abstractExpressions+=AbstractExpression)*
+;
+
+AbstractExpression:
+	expression=Expression ';'
+;
+	
+Expression returns Expression:
+	Operande ({Expression.left=current} operateur=('+'|'-') right=Expression)?
+;
+
+Operande returns Expression:
+	Terme ({Expression.left=current} operateur=('*'|'/') right=Expression)?
+;
+
+Terme returns Expression:
+	'(' Expression ')' |
+	signe='-' valeur=INT |
+	valeur=INT
+;
