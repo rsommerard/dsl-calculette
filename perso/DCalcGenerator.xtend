@@ -9,6 +9,8 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 import compil.dslcalculette.dCalc.AbstractExpression
 import java.util.List
 import compil.dslcalculette.dCalc.Expression
+import java.util.HashMap
+import java.util.ArrayList
 
 /**
  * Generates code from your model files on save.
@@ -27,7 +29,23 @@ class DCalcGenerator implements IGenerator {
 			public static void main(String[] args) {
 				int res = 0;
 				«FOR ae: aes»
-					res = «ae.compile»;
+					«IF ae.expression.left != null»
+						«IF ae.expression.left.name != null»
+							«IF ae.expression.operateur.equals("=")»
+								int _«ae.expression.left.name» = 
+							«ELSE»
+								res = _«ae.expression.left.name»
+							«ENDIF»
+						«ELSE»
+							res = 
+						«ENDIF»
+						«ae.compile»;
+						«IF ae.expression.operateur.equals("=")»
+							res = «ae.compile»;
+						«ENDIF»
+					«ELSE»
+						res = _«ae.expression.name»;
+					«ENDIF»
 				«ENDFOR»
 				System.out.println(res);
 			}
@@ -35,40 +53,56 @@ class DCalcGenerator implements IGenerator {
   	'''
   	
   	def CharSequence compile(AbstractExpression ae) '''
-  		(«IF ae.expression.left == null»
-  		«IF ae.expression.signe != null»«ae.expression.signe»«ENDIF»
-  		«ae.expression.valeur»
+  		«IF ae.expression.left.name == null»
+  			(«IF ae.expression.left == null»
+  				«IF ae.expression.signe != null»
+  					«ae.expression.signe»
+  				«ENDIF»
+  				«ae.expression.valeur»
+  			«ELSE»
+  				«IF ae.expression.left.signe != null»
+  					«ae.expression.left.signe»
+  				«ENDIF»
+  				«ae.expression.left.valeur»
+  				«IF ae.expression.operateur != null»
+  					«ae.expression.operateur»
+  				«ENDIF»
+  				«IF ae.expression.right != null»
+  					«ae.expression.right.compile»
+  				«ENDIF»
+  			«ENDIF»)
   		«ELSE»
-  		«IF ae.expression.left.signe != null»
-  		«ae.expression.left.signe»
+  			(«IF ae.expression.left.signe != null»
+  					«ae.expression.left.signe»
+  				«ENDIF»
+  				«ae.expression.left.valeur»
+  				«IF ae.expression.operateur != null»
+  					«ae.expression.operateur»
+  				«ENDIF»
+  				«IF ae.expression.right != null»
+  					«ae.expression.right.compile»
+  				«ENDIF»)
   		«ENDIF»
-  		«ae.expression.left.valeur»
-  		«IF ae.expression.operateur != null»
-  		«ae.expression.operateur»
-  		«ENDIF»
-  		«IF ae.expression.right != null»
-  		«ae.expression.right.compile»
-  		«ENDIF»
-  		«ENDIF»)
   	'''
   	
   	def CharSequence compile(Expression e) '''
   		(«IF e.left != null»
-  		«IF e.left.signe != null»
-  		«e.left.signe»
-  		«ENDIF»
-  		«e.left.valeur»
+  			«IF e.left.name != null»
+  				_«e.left.name»
+  			«ELSE»
+  				«IF e.left.signe != null»
+  					«e.left.signe»
+  				«ENDIF»
+  				«e.left.valeur»
+  			«ENDIF»
   		«ENDIF»
   		«IF e.operateur != null»
-  		«e.operateur»
+  			«e.operateur»
   		«ENDIF»
   		«IF e.right != null»
-  		«e.right.compile»
+  			«e.right.compile»
   		«ELSE»
-  		«IF e.signe != null»
-  		«e.signe»
-  		«ENDIF»
-  		«e.valeur»
+  			«e.valeur»
   		«ENDIF»)
   	'''
 }

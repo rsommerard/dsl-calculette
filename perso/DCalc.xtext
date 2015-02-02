@@ -11,7 +11,7 @@ AbstractExpression:
 ;
 	
 Expression returns Expression:
-	Variable {Expression.left=current} operateur=('=') right=Expression |
+	':' Variable {Expression.left=current} operateur=('=') right=Expression |
 	Operande ({Expression.left=current} operateur=('+'|'-') right=Expression)?
 ;
 
@@ -22,7 +22,8 @@ Operande returns Expression:
 Terme returns Expression:
 	'(' Expression ')' |
 	signe='-' valeur=INT |
-	valeur=INT
+	valeur=INT |
+	Variable
 ;
 
 Variable returns Expression:
