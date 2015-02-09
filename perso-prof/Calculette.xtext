@@ -30,5 +30,8 @@ Term returns Expr:
 Factor returns Expr:
 	'(' Expr ')' |
 	{Number} (neg ?= '-')? value=INT |
-	{Var} name=ID
+	{Var} name=ID |
+	{Ans} name=ANS
 ;
+
+terminal ANS : ("#1"|"#2"|"#3");
