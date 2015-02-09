@@ -14,6 +14,8 @@ import org.eclipse.emf.ecore.EObject
 import fr.univLille1.compil.calculette.calculette.Var
 import fr.univLille1.compil.calculette.calculette.Affect
 import fr.univLille1.compil.calculette.calculette.Ligne
+import fr.univLille1.compil.calculette.calculette.Ans
+import java.util.HashMap
 
 /**
  * Generates code from your model files on save.
@@ -22,9 +24,14 @@ import fr.univLille1.compil.calculette.calculette.Ligne
  */
 class CalculetteGenerator implements IGenerator {
     Iterable<Affect> variables
+    HashMap<String, CharSequence> stack = new HashMap<String, CharSequence>();
+    int stackPointer = 0;
     
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 		variables = resource.allContents.toIterable.filter(Affect)
+		stack.put('#1', '0');
+		stack.put('#2', '0');
+		stack.put('#3', '0');
 		for(c: resource.allContents.toIterable.filter(Calculette))
 		   fsa.generateFile(
 		   	  "calculette/Calc.java",
@@ -53,11 +60,19 @@ class CalculetteGenerator implements IGenerator {
 		}
 	'''
 	        Ligne : '''«o.e.compile»'''
-	        Calc : '''res = «o.e.compile»;'''
+	        Calc : calcProcess(o)
 	        Var : '''_«o.name»'''
             Number : '''«IF o.neg»-«ENDIF»«o.value»'''
+	        Ans : '''«stack.get(o.name)»'''
 	        Expr : '''(«o.left.compile») «o.op» («o.right.compile»)'''
 	        Affect : '''_«o.name» = «o.right.compile»;'''
 		}
+	}
+
+	def CharSequence calcProcess(Calc o) {
+		stackPointer++
+		stack.put('#' + stackPointer.toString(), o.e.compile)
+		stackPointer = stackPointer % 3
+		'''res = «o.e.compile»;'''
 	}
 }
