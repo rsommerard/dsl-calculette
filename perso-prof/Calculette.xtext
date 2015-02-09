@@ -1,0 +1,34 @@
+grammar fr.univLille1.compil.calculette.Calculette with org.eclipse.xtext.common.Terminals
+
+generate calculette "http://www.univLille1.fr/compil/calculette/Calculette"
+
+Calculette:
+	(calculs+=Ligne ';')*
+;
+
+Ligne:
+	e=Calc |
+	e=Affect
+;
+
+Calc: 
+	e=Expr
+;
+
+Affect:
+	name=ID '=' right=Expr
+;
+
+Expr:
+	Term ({Expr.left=current} op=('+'|'-') right=Expr)?
+;
+
+Term returns Expr:
+	Factor ({Expr.left=current} op=('*'|'/') right=Term)?
+;
+
+Factor returns Expr:
+	'(' Expr ')' |
+	{Number} (neg ?= '-')? value=INT |
+	{Var} name=ID
+;
