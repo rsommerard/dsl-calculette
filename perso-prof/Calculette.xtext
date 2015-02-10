@@ -34,4 +34,4 @@ Factor returns Expr:
 	{Ans} name=ANS
 ;
 
-terminal ANS : ("#1"|"#2"|"#3");
+terminal ANS : ('#1'|'#2'|'#3');

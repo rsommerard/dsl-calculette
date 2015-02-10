@@ -15,7 +15,8 @@ import fr.univLille1.compil.calculette.calculette.Var
 import fr.univLille1.compil.calculette.calculette.Affect
 import fr.univLille1.compil.calculette.calculette.Ligne
 import fr.univLille1.compil.calculette.calculette.Ans
-import java.util.HashMap
+import java.util.List
+import java.util.ArrayList
 
 /**
  * Generates code from your model files on save.
@@ -24,14 +25,10 @@ import java.util.HashMap
  */
 class CalculetteGenerator implements IGenerator {
     Iterable<Affect> variables
-    HashMap<String, CharSequence> stack = new HashMap<String, CharSequence>();
-    int stackPointer = 0;
+    List<CharSequence> stack = new ArrayList<CharSequence>();
     
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 		variables = resource.allContents.toIterable.filter(Affect)
-		stack.put('#1', '0');
-		stack.put('#2', '0');
-		stack.put('#3', '0');
 		for(c: resource.allContents.toIterable.filter(Calculette))
 		   fsa.generateFile(
 		   	  "calculette/Calc.java",
@@ -39,9 +36,25 @@ class CalculetteGenerator implements IGenerator {
 		   )
 	}
 	
-	def CharSequence compile(EObject o) {
+	def CharSequence compile(EObject o) {	
 		switch o {
-			Calculette : '''
+			Calculette : process(o)
+	        Ligne : '''«o.e.compile»'''
+	        Calc : calcProcess(o)
+	        Var : '''_«o.name»'''
+            Number : '''«IF o.neg»-«ENDIF»«o.value»'''
+	        Ans : depile(o)
+	        Expr : '''(«o.left.compile») «o.op» («o.right.compile»)'''
+	        Affect : '''_«o.name» = «o.right.compile»;'''
+		}
+	}
+	
+	def CharSequence process(Calculette o) {
+		stack.clear();
+		stack.add('0');
+		stack.add('0');
+		stack.add('0');
+		'''
 		package calculette;
 		
 		public class Calc {
@@ -59,20 +72,25 @@ class CalculetteGenerator implements IGenerator {
 			
 		}
 	'''
-	        Ligne : '''«o.e.compile»'''
-	        Calc : calcProcess(o)
-	        Var : '''_«o.name»'''
-            Number : '''«IF o.neg»-«ENDIF»«o.value»'''
-	        Ans : '''«stack.get(o.name)»'''
-	        Expr : '''(«o.left.compile») «o.op» («o.right.compile»)'''
-	        Affect : '''_«o.name» = «o.right.compile»;'''
-		}
 	}
 
 	def CharSequence calcProcess(Calc o) {
-		stackPointer++
-		stack.put('#' + stackPointer.toString(), o.e.compile)
-		stackPointer = stackPointer % 3
-		'''res = «o.e.compile»;'''
+		'''res = «empile(o.e.compile)»;'''
+	}
+	
+	def CharSequence empile(CharSequence cs) {
+		stack.remove(0)
+		stack.add(cs)
+		cs
+	}
+	
+	def CharSequence depile(Ans o) {
+		var index = 0
+		switch o.name {
+			case '#1' : index = 2
+			case '#2' : index = 1
+			case '#3' : index = 0
+		}
+		stack.get(index)
 	}
 }
