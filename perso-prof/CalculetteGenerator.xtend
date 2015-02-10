@@ -25,6 +25,7 @@ import java.util.ArrayList
  */
 class CalculetteGenerator implements IGenerator {
     Iterable<Affect> variables
+    boolean stackFlag = false;
     List<CharSequence> stack = new ArrayList<CharSequence>();
     
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
@@ -75,17 +76,23 @@ class CalculetteGenerator implements IGenerator {
 	}
 
 	def CharSequence calcProcess(Calc o) {
-		'''res = «empile(o.e.compile)»;'''
+		var ret = '''res = «empile(o.e.compile)»;'''
+		stackFlag = false;
+		ret
 	}
 	
 	def CharSequence empile(CharSequence cs) {
-		stack.remove(0)
-		stack.add(cs)
+		if(!stackFlag) {
+			stack.remove(0)
+			stack.add(cs)
+		}
+		
 		cs
 	}
 	
 	def CharSequence depile(Ans o) {
 		var index = 0
+		stackFlag = true;
 		switch o.name {
 			case '#1' : index = 2
 			case '#2' : index = 1
