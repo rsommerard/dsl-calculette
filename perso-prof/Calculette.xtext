@@ -19,6 +19,11 @@ Affect:
 	name=ID '=' right=Expr
 ;
 
+Condition:
+	'if' condition=Expr 'then' then=Expr |
+	(=>'else' else=Expr)?
+;
+
 Expr:
 	Term ({Expr.left=current} op=('+'|'-') right=Expr)?
 ;
@@ -35,3 +40,4 @@ Factor returns Expr:
 ;
 
 terminal ANS : ('#1'|'#2'|'#3');
+terminal BOOLEAN : ('true'|'false');
